@@ -1,5 +1,8 @@
 [![Build Status](https://travis-ci.org/postgrespro/pg_query_state.svg?branch=master)](https://travis-ci.org/postgrespro/pg_query_state)
 
+# Fork info
+Just removed check "attempt to extract state of current process". This is necessary for call the pg_query_state function from the same pid to write exactly current query to the logs.
+
 # pg\_query\_state
 The `pg_query_state` module provides facility to know the current state of query execution on working backend. To enable this extension you have to patch the latest stable version of PostgreSQL. Different branches are intended for different version numbers of PostgreSQL, e.g., branch _PG9_5_ corresponds to PostgreSQL 9.5.
 

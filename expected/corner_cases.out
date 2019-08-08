@@ -1,11 +1,11 @@
 Parsed test spec with 2 sessions
 
 starting permutation: s1_pg_qs_1
-step s1_pg_qs_1: select pg_query_state(1);
+step s1_pg_qs_1: select pg_own_query(1);
 ERROR:  backend with pid=1 not found
 
 starting permutation: s1_pg_qs_2
-step s1_pg_qs_2: select pg_query_state(pg_backend_pid());
+step s1_pg_qs_2: select pg_own_query(pg_backend_pid());
 ERROR:  attempt to extract state of current process
 
 starting permutation: s1_save_pid s2_pg_qs_counterpart
@@ -14,8 +14,8 @@ save_own_pid
 
                
 INFO:  state of backend is idle
-step s2_pg_qs_counterpart: select pg_query_state(counterpart_pid(0));
-pg_query_state 
+step s2_pg_qs_counterpart: select pg_own_query(counterpart_pid(0));
+pg_own_query 
 
 
 starting permutation: s1_save_pid s1_disable_pg_qs s2_pg_qs_counterpart
@@ -23,10 +23,10 @@ step s1_save_pid: select save_own_pid(0);
 save_own_pid   
 
                
-step s1_disable_pg_qs: set pg_query_state.enable to off;
+step s1_disable_pg_qs: set pg_own_query.enable to off;
 INFO:  query execution statistics disabled
-step s2_pg_qs_counterpart: select pg_query_state(counterpart_pid(0));
-pg_query_state 
+step s2_pg_qs_counterpart: select pg_own_query(counterpart_pid(0));
+pg_own_query 
 
 
 starting permutation: s1_set_bob s2_set_bob s1_save_pid s2_pg_qs_counterpart
@@ -37,8 +37,8 @@ save_own_pid
 
                
 INFO:  state of backend is idle
-step s2_pg_qs_counterpart: select pg_query_state(counterpart_pid(0));
-pg_query_state 
+step s2_pg_qs_counterpart: select pg_own_query(counterpart_pid(0));
+pg_own_query 
 
 
 starting permutation: s1_set_bob s2_set_su s1_save_pid s2_pg_qs_counterpart
@@ -49,8 +49,8 @@ save_own_pid
 
                
 INFO:  state of backend is idle
-step s2_pg_qs_counterpart: select pg_query_state(counterpart_pid(0));
-pg_query_state 
+step s2_pg_qs_counterpart: select pg_own_query(counterpart_pid(0));
+pg_own_query 
 
 
 starting permutation: s1_set_bob s2_set_alice s1_save_pid s2_pg_qs_counterpart
@@ -60,5 +60,5 @@ step s1_save_pid: select save_own_pid(0);
 save_own_pid   
 
                
-step s2_pg_qs_counterpart: select pg_query_state(counterpart_pid(0));
+step s2_pg_qs_counterpart: select pg_own_query(counterpart_pid(0));
 ERROR:  permission denied

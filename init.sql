@@ -1,7 +1,7 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
-\echo Use "CREATE EXTENSION pg_query_state" to load this file. \quit
+\echo Use "CREATE EXTENSION pg_own_query" to load this file. \quit
 
-CREATE FUNCTION pg_query_state(pid 		integer
+CREATE FUNCTION pg_own_query(pid 		integer
 							 , verbose	boolean = FALSE
 							 , costs 	boolean = FALSE
 							 , timing 	boolean = FALSE

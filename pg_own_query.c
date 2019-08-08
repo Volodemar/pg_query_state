@@ -1,14 +1,14 @@
 /*
- * pg_query_state.c
+ * pg_own_query.c
  *		Extract information about query state from other backend
  *
  * Copyright (c) 2016-2016, Postgres Professional
  *
- *	  contrib/pg_query_state/pg_query_state.c
+ *	  contrib/pg_own_query/pg_own_query.c
  * IDENTIFICATION
  */
 
-#include "pg_query_state.h"
+#include "pg_own_query.h"
 
 #include "access/htup_details.h"
 #include "catalog/pg_type.h"
@@ -144,7 +144,7 @@ pg_qs_shmem_startup(void)
 	void	*shmem;
 	int		num_toc = 0;
 
-	shmem = ShmemInitStruct("pg_query_state", shmem_size, &found);
+	shmem = ShmemInitStruct("pg_own_query", shmem_size, &found);
 	if (!found)
 	{
 		toc = shm_toc_create(PG_QS_MODULE_KEY, shmem, shmem_size);
@@ -205,12 +205,12 @@ _PG_init(void)
 		|| UserIdPollReason == INVALID_PROCSIGNAL)
 	{
 		ereport(WARNING, (errcode(ERRCODE_INSUFFICIENT_RESOURCES),
-					errmsg("pg_query_state isn't loaded: insufficient custom ProcSignal slots")));
+					errmsg("pg_own_query isn't loaded: insufficient custom ProcSignal slots")));
 		return;
 	}
 
 	/* Define custom GUC variables */
-	DefineCustomBoolVariable("pg_query_state.enable",
+	DefineCustomBoolVariable("pg_own_query.enable",
 							 "Enable module.",
 							 NULL,
 							 &pg_qs_enable,
@@ -220,7 +220,7 @@ _PG_init(void)
 							 NULL,
 							 NULL,
 							 NULL);
-	DefineCustomBoolVariable("pg_query_state.enable_timing",
+	DefineCustomBoolVariable("pg_own_query.enable_timing",
 							 "Collect timing data, not just row counts.",
 							 NULL,
 							 &pg_qs_timing,
@@ -230,7 +230,7 @@ _PG_init(void)
 							 NULL,
 							 NULL,
 							 NULL);
-	DefineCustomBoolVariable("pg_query_state.enable_buffers",
+	DefineCustomBoolVariable("pg_own_query.enable_buffers",
 							 "Collect buffer usage.",
 							 NULL,
 							 &pg_qs_buffers,
@@ -240,7 +240,7 @@ _PG_init(void)
 							 NULL,
 							 NULL,
 							 NULL);
-	EmitWarningsOnPlaceholders("pg_query_state");
+	EmitWarningsOnPlaceholders("pg_own_query");
 
 	/* Install hooks */
 	prev_ExecutorStart = ExecutorStart_hook;
@@ -475,11 +475,11 @@ deserialize_stack(char *src, int stack_depth)
 }
 
 /*
- * Implementation of pg_query_state function
+ * Implementation of pg_own_query function
  */
-PG_FUNCTION_INFO_V1(pg_query_state);
+PG_FUNCTION_INFO_V1(pg_own_query);
 Datum
-pg_query_state(PG_FUNCTION_ARGS)
+pg_own_query(PG_FUNCTION_ARGS)
 {
 	typedef struct
 	{
@@ -520,7 +520,7 @@ pg_query_state(PG_FUNCTION_ARGS)
 
 		if (!module_initialized)
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-							errmsg("pg_query_state wasn't initialized yet")));
+							errmsg("pg_own_query wasn't initialized yet")));
 
 		proc = BackendPidGetProc(pid);
 		if (!proc || proc->backendId == InvalidBackendId)

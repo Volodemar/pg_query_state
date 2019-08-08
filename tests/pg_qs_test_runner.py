@@ -18,10 +18,10 @@ class SetupException(Exception): pass
 class TeardownException(Exception): pass
 
 setup_cmd = [
-	'drop extension if exists pg_query_state cascade',
+	'drop extension if exists pg_own_query cascade',
 	'drop table if exists foo cascade',
 	'drop table if exists bar cascade',
-	'create extension pg_query_state',
+	'create extension pg_own_query',
 	'create table foo(c1 integer, c2 text)',
 	'create table bar(c1 integer, c2 boolean)',
 	'insert into foo select i, md5(random()::text) from generate_series(1, 1000000) as i',
@@ -33,7 +33,7 @@ setup_cmd = [
 teardown_cmd = [
 	'drop table foo cascade',
 	'drop table bar cascade',
-	'drop extension pg_query_state cascade',
+	'drop extension pg_own_query cascade',
 	]
 
 tests = [
@@ -51,7 +51,7 @@ tests = [
         ]
 
 def setup(con):
-	''' Creates pg_query_state extension, creates tables for tests, fills it with data '''
+	''' Creates pg_own_query extension, creates tables for tests, fills it with data '''
 	print 'setting up...'
 	try:
 		cur = con.cursor()

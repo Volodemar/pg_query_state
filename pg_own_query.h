@@ -1,11 +1,11 @@
 /*
- * pg_query_state.h
- *		Headers for pg_query_state extension.
+ * pg_own_query.h
+ *		Headers for pg_own_query extension.
  *
  * Copyright (c) 2016-2016, Postgres Professional
  *
  * IDENTIFICATION
- *	  contrib/pg_query_state/pg_query_state.h
+ *	  contrib/pg_own_query/pg_own_query.h
  */
 #ifndef __PG_QUERY_STATE_H__
 #define __PG_QUERY_STATE_H__
@@ -47,7 +47,7 @@ typedef struct
 
 #define BASE_SIZEOF_SHM_MQ_MSG (offsetof(shm_mq_msg, stack_depth))
 
-/* pg_query_state arguments */
+/* pg_own_query arguments */
 typedef struct
 {
 	bool 	verbose;
@@ -58,7 +58,7 @@ typedef struct
 	ExplainFormat format;
 } pg_qs_params;
 
-/* pg_query_state */
+/* pg_own_query */
 extern bool 	pg_qs_enable;
 extern bool 	pg_qs_timing;
 extern bool 	pg_qs_buffers;

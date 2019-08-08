@@ -1,6 +1,6 @@
 setup
 {
-	CREATE EXTENSION pg_query_state;
+	CREATE EXTENSION pg_own_query;
 	CREATE ROLE alice;
 	CREATE ROLE bob;
 	CREATE ROLE super SUPERUSER;
@@ -31,26 +31,26 @@ teardown
 	DROP ROLE super;
 	DROP ROLE bob;
 	DROP ROLE alice;
-	DROP EXTENSION pg_query_state;
+	DROP EXTENSION pg_own_query;
 }
 
 session "s1"
 step "s1_save_pid"			{ select save_own_pid(0); }
-step "s1_pg_qs_counterpart" { select pg_query_state(counterpart_pid(1)); }
+step "s1_pg_qs_counterpart" { select pg_own_query(counterpart_pid(1)); }
 step "s1_set_bob"			{ set role bob; }
-step "s1_disable_pg_qs"		{ set pg_query_state.enable to off; }
-step "s1_enable_pg_qs"		{ set pg_query_state.enable to on; }
-step "s1_pg_qs_1"			{ select pg_query_state(1); }
-step "s1_pg_qs_2"			{ select pg_query_state(pg_backend_pid()); }
+step "s1_disable_pg_qs"		{ set pg_own_query.enable to off; }
+step "s1_enable_pg_qs"		{ set pg_own_query.enable to on; }
+step "s1_pg_qs_1"			{ select pg_own_query(1); }
+step "s1_pg_qs_2"			{ select pg_own_query(pg_backend_pid()); }
 teardown
 {
 	reset role;
-	set pg_query_state.enable to on;
+	set pg_own_query.enable to on;
 }
 
 session "s2"
 step "s2_save_pid"			{ select save_own_pid(1); }
-step "s2_pg_qs_counterpart" { select pg_query_state(counterpart_pid(0)); }
+step "s2_pg_qs_counterpart" { select pg_own_query(counterpart_pid(0)); }
 step "s2_set_bob"			{ set role bob; }
 step "s2_set_alice"			{ set role alice; }
 step "s2_set_su"			{ set role super; }

@@ -1,10 +1,10 @@
-[![Build Status](https://travis-ci.org/postgrespro/pg_query_state.svg?branch=master)](https://travis-ci.org/postgrespro/pg_query_state)
+[![Build Status](https://travis-ci.org/postgrespro/pg_own_query.svg?branch=master)](https://travis-ci.org/postgrespro/pg_own_query)
 
 # Fork info
-Just removed check "attempt to extract state of current process". This is necessary for call the pg_query_state function from the same pid to write exactly current query to the logs.
+Just removed check "attempt to extract state of current process". This is necessary for call the pg_own_query function from the same pid to write exactly current query to the logs.
 
 # pg\_query\_state
-The `pg_query_state` module provides facility to know the current state of query execution on working backend. To enable this extension you have to patch the latest stable version of PostgreSQL. Different branches are intended for different version numbers of PostgreSQL, e.g., branch _PG9_5_ corresponds to PostgreSQL 9.5.
+The `pg_own_query` module provides facility to know the current state of query execution on working backend. To enable this extension you have to patch the latest stable version of PostgreSQL. Different branches are intended for different version numbers of PostgreSQL, e.g., branch _PG9_5_ corresponds to PostgreSQL 9.5.
 
 ## Overview
 Each nonutility query statement (SELECT/INSERT/UPDATE/DELETE) after optimization/planning stage is translated into plan tree which is kind of imperative representation of declarative SQL query. EXPLAIN ANALYZE request allows to demonstrate execution statistics gathered from each node of plan tree (full time of execution, number rows emitted to upper nodes, etc). But this statistics is collected after execution of query. This module allows to show actual statistics of query running on external backend. At that, format of resulting output is almost identical to ordinal EXPLAIN ANALYZE. Thus users are able to track of query execution in progress.
@@ -17,7 +17,7 @@ Using this module there can help in the following things:
  - overwatch the query execution
 
 ## Installation
-To install `pg_query_state`, please apply corresponding patches `custom_signal_(PG_VERSION).patch` and `runtime_explain.patch` (or `runtime_explain_11.0.patch` for PG11) to reqired stable version of PostgreSQL and rebuild PostgreSQL.
+To install `pg_own_query`, please apply corresponding patches `custom_signal_(PG_VERSION).patch` and `runtime_explain.patch` (or `runtime_explain_11.0.patch` for PG11) to reqired stable version of PostgreSQL and rebuild PostgreSQL.
 
 
 Then execute this in the module's directory:
@@ -26,11 +26,11 @@ make install USE_PGXS=1
 ```
 Add module name to the `shared_preload_libraries` parameter in `postgresql.conf`:
 ```
-shared_preload_libraries = 'pg_query_state'
+shared_preload_libraries = 'pg_own_query'
 ```
 It is essential to restart the PostgreSQL instance. After that, execute the following query in psql:
 ```
-CREATE EXTENSION pg_query_state;
+CREATE EXTENSION pg_own_query;
 ```
 Done!
 
@@ -52,7 +52,7 @@ Tests using parallel sessions using python 2.7 script:
 
 ## Function pg\_query\_state
 ```plpgsql
-pg_query_state(integer 	pid,
+pg_own_query(integer 	pid,
 			   verbose	boolean DEFAULT FALSE,
 			   costs 	boolean DEFAULT FALSE,
 			   timing 	boolean DEFAULT FALSE,
@@ -65,7 +65,7 @@ pg_query_state(integer 	pid,
 	                plan text,
 	                leader_pid integer)
 ```
-Extract current query state from backend with specified `pid`. Since parallel query can spawn multiple workers and function call causes nested subqueries so that state of execution may be viewed as stack of running queries, return value of `pg_query_state` has type `TABLE (pid integer, frame_number integer, query_text text, plan text, leader_pid integer)`. It represents tree structure consisting of leader process and its spawned workers identified by `pid`. Each worker refers to leader through `leader_pid` column. For leader process the value of this column is` null`. The state of each process is represented as stack of function calls. Each frame of that stack is specified as correspondence between `frame_number` starting from zero, `query_text` and `plan` with online statistics columns.
+Extract current query state from backend with specified `pid`. Since parallel query can spawn multiple workers and function call causes nested subqueries so that state of execution may be viewed as stack of running queries, return value of `pg_own_query` has type `TABLE (pid integer, frame_number integer, query_text text, plan text, leader_pid integer)`. It represents tree structure consisting of leader process and its spawned workers identified by `pid`. Each worker refers to leader through `leader_pid` column. For leader process the value of this column is` null`. The state of each process is represented as stack of function calls. Each frame of that stack is specified as correspondence between `frame_number` starting from zero, `query_text` and `plan` with online statistics columns.
 
 Thus, user can see the states of main query and queries generated from function calls for leader process and all workers spawned from it.
 
@@ -87,11 +87,11 @@ Calling role have to be superuser or member of the role whose backend is being c
 ## Configuration settings
 There are several user-accessible [GUC](https://www.postgresql.org/docs/9.5/static/config-setting.html) variables designed to toggle the whole module and the collecting of specific statistic parameters while query is running:
 
- - `pg_query_state.enable` --- disable (or enable) `pg_query_state` completely, default value is `true`
- - `pg_query_state.enable_timing` --- collect timing data for each node, default value is `false`
- - `pg_query_state.enable_buffers` --- collect buffers usage, default value is `false`
+ - `pg_own_query.enable` --- disable (or enable) `pg_own_query` completely, default value is `true`
+ - `pg_own_query.enable_timing` --- collect timing data for each node, default value is `false`
+ - `pg_own_query.enable_buffers` --- collect buffers usage, default value is `false`
 
-This parameters is set on called side before running any queries whose states are attempted to extract. **_Warning_**: if `pg_query_state.enable_timing` is turned off the calling side cannot get time statistics, similarly for `pg_query_state.enable_buffers` parameter.
+This parameters is set on called side before running any queries whose states are attempted to extract. **_Warning_**: if `pg_own_query.enable_timing` is turned off the calling side cannot get time statistics, similarly for `pg_own_query.enable_buffers` parameter.
 
 ## Examples
 Set maximum number of parallel workers on `gather` node equals `2`:
@@ -110,7 +110,7 @@ postgres=# select count(*) from foo join bar on foo.c1=bar.c1;
 Other backend can extract intermediate state of execution that query:
 ```
 postgres=# \x
-postgres=# select * from pg_query_state(49265);
+postgres=# select * from pg_own_query(49265);
 -[ RECORD 1 ]+-------------------------------------------------------------------------------------------------------------------------
 pid          | 49265
 frame_number | 0
@@ -158,7 +158,7 @@ postgres=# select n_join_foo_bar();
 ```
 Other backend can get the follow output:
 ```
-postgres=# select * from pg_query_state(49265);
+postgres=# select * from pg_own_query(49265);
 -[ RECORD 1 ]+------------------------------------------------------------------------------------------------------------------
 pid          | 49265
 frame_number | 0
@@ -184,7 +184,7 @@ First row corresponds to function call, second - to query which is in the body o
 
 We can get result plans in different format (e.g. `json`):
 ```
-postgres=# select * from pg_query_state(pid := 49265, format := 'json');
+postgres=# select * from pg_own_query(pid := 49265, format := 'json');
 -[ RECORD 1 ]+------------------------------------------------------------
 pid          | 49265
 frame_number | 0
@@ -285,7 +285,7 @@ leader_pid   | (null)
 ```
 
 ## Feedback
-Do not hesitate to post your issues, questions and new ideas at the [issues](https://github.com/postgrespro/pg_query_state/issues) page.
+Do not hesitate to post your issues, questions and new ideas at the [issues](https://github.com/postgrespro/pg_own_query/issues) page.
 
 ## Authors
 Maksim Milyutin <m.milyutin@postgrespro.ru> Postgres Professional Ltd., Russia

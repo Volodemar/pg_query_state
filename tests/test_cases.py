@@ -81,7 +81,7 @@ def notices_warning():
 		print("WARNING:")
 		print(notices)
 
-def pg_query_state(config, pid, verbose=False, costs=False, timing=False, \
+def pg_own_query(config, pid, verbose=False, costs=False, timing=False, \
 								buffers=False, triggers=False, format='text'):
 	"""
 	Get query state from backend with specified pid and optional parameters.
@@ -94,7 +94,7 @@ def pg_query_state(config, pid, verbose=False, costs=False, timing=False, \
 	curs = conn.cursor()
 	result = []
 	while not result:
-		curs.callproc('pg_query_state', (pid, verbose, costs, timing, buffers, triggers, format))
+		curs.callproc('pg_own_query', (pid, verbose, costs, timing, buffers, triggers, format))
 		result = curs.fetchall()
 	notices = conn.notices[:]
 	conn.close()
@@ -108,8 +108,8 @@ def test_deadlock(config):
 	acurs2 = acon2.cursor()
 
 	while True:
-		acurs1.callproc('pg_query_state', (acon2.get_backend_pid(),))
-		acurs2.callproc('pg_query_state', (acon1.get_backend_pid(),))
+		acurs1.callproc('pg_own_query', (acon2.get_backend_pid(),))
+		acurs2.callproc('pg_own_query', (acon1.get_backend_pid(),))
 
 		# listen acon1, acon2 with timeout = 10 sec to determine deadlock
 		r, w, x = select.select([acon1.fileno(), acon2.fileno()], [], [], 10)
@@ -118,7 +118,7 @@ def test_deadlock(config):
 		wait(acon1)
 		wait(acon2)
 
-		# exit from loop if one backend could read state of execution 'pg_query_state'
+		# exit from loop if one backend could read state of execution 'pg_own_query'
 		# from other backend
 		if acurs1.fetchone() or acurs2.fetchone():
 			break
@@ -146,10 +146,10 @@ def query_state(config, async_conn, query, args={}, num_workers=0):
 			}
 	for k, v in args.iteritems():
 		pg_qs_args[k] = v
-	result = pg_query_state(**pg_qs_args)
+	result = pg_own_query(**pg_qs_args)
 	wait(async_conn)
 
-	set_guc(async_conn, 'pg_query_state.executor_trace', 'off')
+	set_guc(async_conn, 'pg_own_query.executor_trace', 'off')
 	set_guc(async_conn, 'enable_mergejoin', 'on')
 
 	conn.close()
@@ -187,8 +187,8 @@ def test_concurrent_access(config):
 	set_guc(acon3, 'max_parallel_workers_per_gather', 0)
 	acurs3.execute(query)
 	time.sleep(0.1)
-	acurs1.callproc('pg_query_state', (acon3.get_backend_pid(),))
-	acurs2.callproc('pg_query_state', (acon3.get_backend_pid(),))
+	acurs1.callproc('pg_own_query', (acon3.get_backend_pid(),))
+	acurs2.callproc('pg_own_query', (acon3.get_backend_pid(),))
 	wait(acon1)
 	wait(acon2)
 	wait(acon3)
@@ -373,7 +373,7 @@ def test_buffers(config):
               ->  Seq Scan on bar \(Current loop: actual rows=\d+, loop number=1\)
                     Buffers: .*"""
 
-	set_guc(acon, 'pg_query_state.enable_buffers', 'on')
+	set_guc(acon, 'pg_own_query.enable_buffers', 'on')
 
 	qs = query_state(config, acon, query, {'buffers': True})
 	debug_output(qs, 1, None, query, expected)
@@ -396,7 +396,7 @@ def test_timing(config):
               Buckets: \d+  Batches: \d+  Memory Usage: \d+kB
               ->  Seq Scan on bar \(Current loop: actual time=\d+.\d+..\d+.\d+ rows=\d+, loop number=1\)"""
 
-	set_guc(acon, 'pg_query_state.enable_timing', 'on')
+	set_guc(acon, 'pg_own_query.enable_timing', 'on')
 
 	qs = query_state(config, acon, query, {'timing': True})
 	debug_output(qs, 1, None, query, expected)
@@ -427,7 +427,7 @@ def check_xml(root):
 			and cur_loop.find(prefix + 'Actual-Rows') != None
 
 def test_formats(config):
-	"""test all formats of pg_query_state output"""
+	"""test all formats of pg_own_query output"""
 
 	acon, = n_async_connect(config)
 	query = 'select count(*) from foo join bar on foo.c1=bar.c1'

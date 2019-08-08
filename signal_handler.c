@@ -5,10 +5,10 @@
  * Copyright (c) 2016-2016, Postgres Professional
  *
  * IDENTIFICATION
- *	  contrib/pg_query_state/signal_handler.c
+ *	  contrib/pg_own_query/signal_handler.c
  */
 
-#include "pg_query_state.h"
+#include "pg_own_query.h"
 
 #include "commands/explain.h"
 #include "miscadmin.h"

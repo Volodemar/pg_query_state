@@ -475,6 +475,16 @@ deserialize_stack(char *src, int stack_depth)
 }
 
 /*
+	Наша тестовая функция
+*/
+PG_FUNCTION_INFO_V1(pg_text_query);
+Datum
+pg_text_query(PG_FUNCTION_ARGS)
+{
+	
+}
+
+/*
  * Implementation of pg_own_query function
  */
 PG_FUNCTION_INFO_V1(pg_own_query);
@@ -499,7 +509,7 @@ pg_own_query(PG_FUNCTION_ARGS)
 	FuncCallContext	*funcctx;
 	MemoryContext	oldcontext;
 	pg_qs_fctx		*fctx;
-#define		N_ATTRS  3
+#define		N_ATTRS  5
 	pid_t			pid = PG_GETARG_INT32(0);
 
 	if (SRF_IS_FIRSTCALL())
@@ -640,8 +650,8 @@ pg_own_query(PG_FUNCTION_ARGS)
 					TupleDescInitEntry(tupdesc, (AttrNumber) 1, "pid", INT4OID, -1, 0);
 					TupleDescInitEntry(tupdesc, (AttrNumber) 2, "frame_number", INT4OID, -1, 0);
 					TupleDescInitEntry(tupdesc, (AttrNumber) 3, "query_text", TEXTOID, -1, 0);
-					//TupleDescInitEntry(tupdesc, (AttrNumber) 4, "plan", TEXTOID, -1, 0);
-					//TupleDescInitEntry(tupdesc, (AttrNumber) 5, "leader_pid", INT4OID, -1, 0);
+					TupleDescInitEntry(tupdesc, (AttrNumber) 4, "plan", TEXTOID, -1, 0);
+					TupleDescInitEntry(tupdesc, (AttrNumber) 5, "leader_pid", INT4OID, -1, 0);
 					funcctx->tuple_desc = BlessTupleDesc(tupdesc);
 
 					LockRelease(&tag, ExclusiveLock, false);

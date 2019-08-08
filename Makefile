@@ -4,7 +4,7 @@ MODULE_big = pg_own_query
 OBJS = pg_own_query.o signal_handler.o $(WIN32RES)
 EXTENSION = pg_own_query
 EXTVERSION = 1.1
-DATA = pg_own_query--1.0--1.1.sql
+#DATA = pg_own_query--1.0--1.1.sql
 DATA_built = $(EXTENSION)--$(EXTVERSION).sql
 PGFILEDESC = "pg_own_query - facility to track progress of plan execution"
 
